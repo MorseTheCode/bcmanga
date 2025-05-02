@@ -10,6 +10,16 @@
           "number": 1,
           "title": "Volume 1 - The Bow's Vow",
           "zip": "volumes/Volume 1.zip"
+        },
+        {
+          "number": 26,
+          "title": "Volume 26 - The Curse Devil",
+          "zip": "volumes/Volume 26.zip"
+        },
+        {
+          "number": 27,
+          "title": "Volume 27 - A Turbulent Conference",
+          "zip": "volumes/Volume 27.zip"
         }
       ]
     }
