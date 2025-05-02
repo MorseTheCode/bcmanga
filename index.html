@@ -3,17 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Read Black Clover Manga</title>
+  <title>Manga Reader</title>
   <link rel="stylesheet" href="style.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
   <header>
-    <h1>Read Black Clover Manga</h1>
+    <h1>Manga Reader</h1>
   </header>
 
   <div class="manga-container">
-    <div class="manga-list" id="mangaList"></div>
+    <div class="manga-list" id="mangaList">
+      <!-- Mangás serão carregados aqui -->
+    </div>
     
     <div class="volume-selector" id="volumeSelector" style="display: none;">
       <div class="cover-container">
@@ -28,7 +29,7 @@
       </div>
       
       <div id="loadingMessage" style="display: none;">
-        <p>Carregando capítulo...</p>
+        <p>Carregando volume...</p>
         <div class="loader"></div>
       </div>
     </div>
