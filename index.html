@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manga Reader (Volumes)</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Manga Reader</h1>
+  </header>
+
+  <div class="manga-list" id="mangaList">
+    <!-- Mangás carregados aqui -->
+  </div>
+
+  <div class="volume-list" id="volumeList" style="display: none;">
+    <button id="backButton">← Voltar</button>
+    <h2 id="volumeListTitle"></h2>
+    <div class="volumes" id="volumesContainer"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

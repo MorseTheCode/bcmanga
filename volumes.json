@@ -1,0 +1,17 @@
+{
+  "mangas": [
+    {
+      "id": 1,
+      "title": "Black Clover(English)",
+      "author": "Yūki Tabata",
+      "cover": "ve/Volume 35/Volume 35-0.jpg",
+      "volumes": [
+        {
+          "number": 1,
+          "title": "Volume 1 - The Bow's Vow",
+          "zip": "ve/Volume 1.zip"
+        }
+      ]
+    }
+  ]
+}
