@@ -7,11 +7,6 @@
       "cover": "cover.jpg",
       "volumes": [
         {
-          "number": 16.5,
-          "title": "Guidebook - Marca-página de Grimório",
-          "zip": "volumes/Guidebook.zip"
-        },
-        {
           "number": 1,
           "title": "Volume 1 - The Bow's Vow",
           "zip": "volumes/Volume 1.zip"
@@ -25,6 +20,11 @@
           "number": 27,
           "title": "Volume 27 - A Turbulent Conference",
           "zip": "volumes/Volume 27.zip"
+        },
+        {
+          "number": 4,
+          "title": "Guidebook - Marca-página de Grimório",
+          "zip": "volumes/Guidebook.zip"
         }
       ]
     }
