@@ -1,11 +1,23 @@
 document.addEventListener("DOMContentLoaded", function() {
+  // Elementos da interface
   const mangaList = document.getElementById("mangaList");
   const volumeList = document.getElementById("volumeList");
   const volumesContainer = document.getElementById("volumesContainer");
   const backButton = document.getElementById("backButton");
   const volumeListTitle = document.getElementById("volumeListTitle");
+  const viewer = document.getElementById("viewer");
+  const closeViewer = document.getElementById("closeViewer");
+  const viewerTitle = document.getElementById("viewerTitle");
+  const currentPageImg = document.getElementById("currentPage");
+  const prevPageBtn = document.getElementById("prevPage");
+  const nextPageBtn = document.getElementById("nextPage");
+  const pageIndicator = document.getElementById("pageIndicator");
 
+  // Variáveis de estado
   let currentManga = null;
+  let currentVolume = null;
+  let currentPages = [];
+  let currentPageIndex = 0;
 
   // Carrega mangás do volumes.json
   fetch("volumes.json")
@@ -51,23 +63,94 @@ document.addEventListener("DOMContentLoaded", function() {
     volumeList.style.display = "none";
   });
 
+  // Fechar visualizador
+  closeViewer.addEventListener("click", () => {
+    viewer.style.display = "none";
+  });
+
   // Abrir um volume (ZIP)
-  function openVolume(volume) {
-  fetch(volume.zip)
-    .then(response => response.blob())
-    .then(blob => JSZip.loadAsync(blob))
-    .then(zip => {
-      const pages = [];
-      zip.forEach((path, file) => {
-        if (!file.dir && path.match(/\.(jpg|png|webp)$/i)) {
-          pages.push(file);
+  async function openVolume(volume) {
+    currentVolume = volume;
+    viewerTitle.textContent = volume.title;
+    
+    try {
+      const response = await fetch(volume.zip);
+      const blob = await response.blob();
+      const zip = await JSZip.loadAsync(blob);
+      
+      currentPages = [];
+      const files = [];
+      
+      // Coletar todos os arquivos de imagem
+      zip.forEach((relativePath, file) => {
+        if (!file.dir && relativePath.match(/\.(jpg|jpeg|png|webp)$/i)) {
+          files.push({
+            name: relativePath,
+            file: file
+          });
         }
       });
-      // Ordene as páginas (ex: page1.jpg, page2.jpg...)
-      pages.sort((a, b) => a.name.localeCompare(b.name));
-      // Exemplo: exibir nomes das páginas
-      alert(`Páginas no ZIP: ${pages.map(p => p.name).join(", ")}`);
-      // Aqui você pode criar um visualizador de páginas
-    });
-}
+      
+      // Ordenar páginas numericamente
+      files.sort((a, b) => {
+        return a.name.localeCompare(b.name, undefined, { numeric: true });
+      });
+      
+      // Extrair URLs das páginas
+      for (const item of files) {
+        const blob = await item.file.async('blob');
+        currentPages.push(URL.createObjectURL(blob));
+      }
+      
+      // Mostrar primeira página
+      if (currentPages.length > 0) {
+        currentPageIndex = 0;
+        showCurrentPage();
+        viewer.style.display = "flex";
+      } else {
+        alert("Nenhuma página encontrada neste volume!");
+      }
+    } catch (error) {
+      console.error("Erro ao carregar volume:", error);
+      alert("Erro ao carregar o volume!");
+    }
+  }
+
+  // Mostrar página atual
+  function showCurrentPage() {
+    currentPageImg.src = currentPages[currentPageIndex];
+    pageIndicator.textContent = `${currentPageIndex + 1}/${currentPages.length}`;
+    
+    // Atualizar estado dos botões
+    prevPageBtn.disabled = currentPageIndex === 0;
+    nextPageBtn.disabled = currentPageIndex === currentPages.length - 1;
+  }
+
+  // Navegação entre páginas
+  prevPageBtn.addEventListener("click", () => {
+    if (currentPageIndex > 0) {
+      currentPageIndex--;
+      showCurrentPage();
+    }
+  });
+
+  nextPageBtn.addEventListener("click", () => {
+    if (currentPageIndex < currentPages.length - 1) {
+      currentPageIndex++;
+      showCurrentPage();
+    }
+  });
+
+  // Navegação por teclado
+  document.addEventListener("keydown", (e) => {
+    if (viewer.style.display === "flex") {
+      if (e.key === "ArrowLeft") {
+        prevPageBtn.click();
+      } else if (e.key === "ArrowRight") {
+        nextPageBtn.click();
+      } else if (e.key === "Escape") {
+        closeViewer.click();
+      }
+    }
+  });
 });
