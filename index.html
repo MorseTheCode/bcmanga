@@ -29,12 +29,24 @@
       
       <div id="loadingMessage" style="display: none;">
         <p>Carregando capítulo...</p>
+        <div class="loader"></div>
       </div>
     </div>
   </div>
 
   <div class="viewer" id="viewer" style="display: none;">
-    <!-- (Manter o mesmo conteúdo do visualizador) -->
+    <div class="viewer-header">
+      <button id="closeViewer">× Fechar</button>
+      <h3 id="viewerTitle">Volume 1</h3>
+      <div class="page-controls">
+        <button id="prevPage">← Anterior</button>
+        <span id="pageIndicator">1/10</span>
+        <button id="nextPage">Próxima →</button>
+      </div>
+    </div>
+    <div class="viewer-content">
+      <img id="currentPage" src="" alt="Página atual">
+    </div>
   </div>
 
   <script src="script.js"></script>

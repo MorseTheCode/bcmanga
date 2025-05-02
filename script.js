@@ -6,8 +6,13 @@ document.addEventListener("DOMContentLoaded", function() {
   const volumeDropdown = document.getElementById("volumeDropdown");
   const readButton = document.getElementById("readButton");
   const loadingMessage = document.getElementById("loadingMessage");
-  
-  // ... (outros elementos do visualizador mantidos)
+  const viewer = document.getElementById("viewer");
+  const closeViewer = document.getElementById("closeViewer");
+  const viewerTitle = document.getElementById("viewerTitle");
+  const currentPageImg = document.getElementById("currentPage");
+  const prevPageBtn = document.getElementById("prevPage");
+  const nextPageBtn = document.getElementById("nextPage");
+  const pageIndicator = document.getElementById("pageIndicator");
 
   // Variáveis de estado
   let currentManga = null;
@@ -17,7 +22,10 @@ document.addEventListener("DOMContentLoaded", function() {
 
   // Carrega mangás do volumes.json
   fetch("volumes.json")
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) throw new Error("Erro ao carregar volumes.json");
+      return response.json();
+    })
     .then(data => {
       data.mangas.forEach(manga => {
         const mangaCard = document.createElement("div");
@@ -32,6 +40,10 @@ document.addEventListener("DOMContentLoaded", function() {
         mangaCard.addEventListener("click", () => showVolumeSelector(manga));
         mangaList.appendChild(mangaCard);
       });
+    })
+    .catch(error => {
+      console.error("Erro ao carregar mangás:", error);
+      alert("Erro ao carregar a lista de mangás. Verifique o console (F12) para detalhes.");
     });
 
   // Mostra seletor de volumes
@@ -52,6 +64,7 @@ document.addEventListener("DOMContentLoaded", function() {
     
     // Resetar estado
     readButton.disabled = true;
+    loadingMessage.style.display = "none";
   }
 
   // Habilitar botão quando selecionar volume
@@ -69,49 +82,94 @@ document.addEventListener("DOMContentLoaded", function() {
     readButton.disabled = true;
     
     try {
-      // Encontrar o volume selecionado
-      currentVolume = currentManga.volumes.find(v => v.zip === selectedZip);
+      console.log("Tentando carregar:", selectedZip);
       
-      // Carregar ZIP
-      const response = await fetch(currentVolume.zip);
+      const response = await fetch(selectedZip);
+      if (!response.ok) throw new Error(`Erro HTTP! status: ${response.status}`);
+      
       const blob = await response.blob();
-      const zip = await JSZip.loadAsync(blob);
+      console.log("Tamanho do ZIP:", blob.size, "bytes");
       
-      currentPages = [];
+      if (blob.size === 0) throw new Error("Arquivo ZIP vazio ou inválido");
+      
+      const zip = await JSZip.loadAsync(blob);
       const files = [];
       
-      // Processar arquivos
+      // Processar arquivos do ZIP
       zip.forEach((relativePath, file) => {
-        if (!file.dir && relativePath.match(/\.(jpg|jpeg|png|webp)$/i)) {
+        if (!file.dir && /\.(jpg|jpeg|png|webp)$/i.test(relativePath)) {
           files.push({ name: relativePath, file: file });
         }
       });
       
-      // Ordenar páginas
+      if (files.length === 0) throw new Error("Nenhuma imagem encontrada no ZIP");
+      
+      // Ordenar páginas numericamente
       files.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
       
-      // Extrair URLs
-      for (const item of files) {
-        const blob = await item.file.async('blob');
+      // Extrair URLs das imagens
+      currentPages = [];
+      for (const { file } of files) {
+        const blob = await file.async('blob');
         currentPages.push(URL.createObjectURL(blob));
       }
       
-      // Mostrar visualizador
-      if (currentPages.length > 0) {
-        viewerTitle.textContent = currentVolume.title;
-        currentPageIndex = 0;
-        showCurrentPage();
-        viewer.style.display = "flex";
-      } else {
-        alert("Nenhuma página encontrada neste volume!");
-      }
+      // Configurar visualizador
+      currentVolume = currentManga.volumes.find(v => v.zip === selectedZip);
+      viewerTitle.textContent = currentVolume.title;
+      currentPageIndex = 0;
+      showCurrentPage();
+      viewer.style.display = "flex";
+      
     } catch (error) {
-      console.error("Erro ao carregar volume:", error);
-      alert("Erro ao carregar o volume!");
+      console.error("Erro detalhado:", error);
+      alert(`Falha ao carregar volume: ${error.message}\nVerifique o console (F12) para detalhes.`);
     } finally {
       loadingMessage.style.display = "none";
     }
   });
 
-  // ... (manter o resto das funções do visualizador)
+  // Mostrar página atual no visualizador
+  function showCurrentPage() {
+    if (currentPages.length === 0) return;
+    
+    currentPageImg.src = currentPages[currentPageIndex];
+    pageIndicator.textContent = `${currentPageIndex + 1}/${currentPages.length}`;
+    
+    // Atualizar estado dos botões
+    prevPageBtn.disabled = currentPageIndex === 0;
+    nextPageBtn.disabled = currentPageIndex === currentPages.length - 1;
+  }
+
+  // Navegação entre páginas
+  prevPageBtn.addEventListener("click", () => {
+    if (currentPageIndex > 0) {
+      currentPageIndex--;
+      showCurrentPage();
+    }
+  });
+
+  nextPageBtn.addEventListener("click", () => {
+    if (currentPageIndex < currentPages.length - 1) {
+      currentPageIndex++;
+      showCurrentPage();
+    }
+  });
+
+  // Fechar visualizador
+  closeViewer.addEventListener("click", () => {
+    viewer.style.display = "none";
+    // Liberar URLs das imagens da memória
+    currentPages.forEach(url => URL.revokeObjectURL(url));
+    currentPages = [];
+  });
+
+  // Navegação por teclado
+  document.addEventListener("keydown", (e) => {
+    if (viewer.style.display === "flex") {
+      if (e.key === "ArrowLeft") prevPageBtn.click();
+      if (e.key === "ArrowRight") nextPageBtn.click();
+      if (e.key === "Escape") closeViewer.click();
+    }
+  });
 });

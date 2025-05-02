@@ -1,9 +1,75 @@
-/* Estilos base mantidos */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #f5f5f5;
+}
+
+header {
+  background: #333;
+  color: white;
+  padding: 1rem;
+  text-align: center;
+}
 
 .manga-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+}
+
+.manga-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+}
+
+.manga-card {
+  background: white;
+  border-radius: 8px;
+  width: 180px;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.manga-card:hover {
+  transform: scale(1.05);
+}
+
+.manga-cover-small {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+}
+
+.manga-info {
+  padding: 10px;
+  text-align: center;
+}
+
+.manga-info h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.manga-info p {
+  margin: 5px 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.volume-selector {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.cover-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
 }
 
 .manga-cover {
@@ -12,11 +78,6 @@
   object-fit: cover;
   border-radius: 5px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
-.volume-selector {
-  margin-top: 30px;
-  text-align: center;
 }
 
 .volume-controls {
@@ -31,7 +92,7 @@
   padding: 8px 15px;
   border-radius: 4px;
   border: 1px solid #ddd;
-  min-width: 200px;
+  min-width: 250px;
 }
 
 #readButton {
@@ -57,4 +118,79 @@
   margin-top: 20px;
   font-style: italic;
   color: #666;
+  text-align: center;
+}
+
+.loader {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin: 10px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.viewer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+.viewer-header {
+  padding: 15px;
+  background: #222;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.viewer-content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: auto;
+}
+
+#currentPage {
+  max-width: 100%;
+  max-height: 90vh;
+  object-fit: contain;
+}
+
+.page-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.page-controls button {
+  background: #444;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+#closeViewer {
+  background: #f44336;
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
 }
