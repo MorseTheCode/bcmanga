@@ -7,6 +7,11 @@
       "cover": "cover.jpg",
       "volumes": [
         {
+          "number": 0,
+          "title": "Guidebook - Marca-página de Grimório",
+          "zip": "volumes/Guidebook.zip"
+        },
+        {
           "number": 1,
           "title": "Volume 1 - The Bow's Vow",
           "zip": "volumes/Volume 1.zip"

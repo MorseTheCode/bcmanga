@@ -12,27 +12,29 @@
     <h1>Manga Reader</h1>
   </header>
 
-  <div class="manga-list" id="mangaList"></div>
-
-  <div class="volume-list" id="volumeList" style="display: none;">
-    <button id="backButton">← Voltar</button>
-    <h2 id="volumeListTitle"></h2>
-    <div class="volumes" id="volumesContainer"></div>
+  <div class="manga-container">
+    <div class="manga-list" id="mangaList"></div>
+    
+    <div class="volume-selector" id="volumeSelector" style="display: none;">
+      <div class="cover-container">
+        <img id="mangaCover" src="" alt="Capa do Mangá" class="manga-cover">
+      </div>
+      
+      <div class="volume-controls">
+        <select id="volumeDropdown">
+          <option value="">-- Selecionar Volume --</option>
+        </select>
+        <button id="readButton">Ler</button>
+      </div>
+      
+      <div id="loadingMessage" style="display: none;">
+        <p>Carregando capítulo...</p>
+      </div>
+    </div>
   </div>
 
   <div class="viewer" id="viewer" style="display: none;">
-    <div class="viewer-header">
-      <button id="closeViewer">× Fechar</button>
-      <h3 id="viewerTitle">Volume 1</h3>
-      <div class="page-controls">
-        <button id="prevPage">← Anterior</button>
-        <span id="pageIndicator">1/10</span>
-        <button id="nextPage">Próxima →</button>
-      </div>
-    </div>
-    <div class="viewer-content">
-      <img id="currentPage" src="" alt="Página atual">
-    </div>
+    <!-- (Manter o mesmo conteúdo do visualizador) -->
   </div>
 
   <script src="script.js"></script>
