@@ -30,7 +30,8 @@ document.addEventListener("DOMContentLoaded", function() {
     currentPages: [],
     currentPageIndex: 0,
     isDoublePage: true,
-    isLoading: false
+    isLoading: false,
+    pageImages: [] // Cache para imagens carregadas
   };
 
   // Inicialização
@@ -38,19 +39,11 @@ document.addEventListener("DOMContentLoaded", function() {
     try {
       showLoading(true);
       
-      // Carrega o manifest.json
       const response = await fetch('manifest.json');
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       
       const data = await response.json();
-      
-      // Verifica se a estrutura do manifest está correta
-      if (!data.mangas || !Array.isArray(data.mangas)) {
-        throw new Error("Estrutura inválida do manifest.json");
-      }
+      if (!data.mangas || !Array.isArray(data.mangas)) throw new Error("Estrutura inválida do manifest.json");
       
       state.mangas = data.mangas;
       renderMangaList();
@@ -63,41 +56,29 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   }
 
-  // Mostra/oculta o loading
   function showLoading(show) {
     state.isLoading = show;
     elements.loadingScreen.style.display = show ? 'flex' : 'none';
   }
 
-  // Mostra mensagem de erro
   function showError(message) {
     elements.mangaList.innerHTML = `
-      <div class="error-message" style="grid-column:1/-1;text-align:center;padding:40px;">
+      <div class="error-message">
         ${message}
-        <button onclick="window.location.reload()" style="margin-top:10px;">Recarregar</button>
+        <button onclick="window.location.reload()">Recarregar</button>
       </div>
     `;
   }
 
-  // Renderiza a lista de mangás
   function renderMangaList() {
     elements.mangaList.innerHTML = '';
     
     if (!state.mangas || state.mangas.length === 0) {
-      elements.mangaList.innerHTML = `
-        <div style="grid-column:1/-1;text-align:center;padding:40px;">
-          Nenhum mangá encontrado no catálogo.
-        </div>
-      `;
+      elements.mangaList.innerHTML = '<div>Nenhum mangá encontrado no catálogo.</div>';
       return;
     }
     
     state.mangas.forEach(manga => {
-      if (!manga.title || !manga.cover || !manga.volumes) {
-        console.warn('Mangá com estrutura inválida:', manga);
-        return;
-      }
-      
       const mangaCard = document.createElement('div');
       mangaCard.className = 'manga-card';
       mangaCard.innerHTML = `
@@ -108,13 +89,11 @@ document.addEventListener("DOMContentLoaded", function() {
           <p>${manga.author || 'Autor não especificado'}</p>
         </div>
       `;
-      
       mangaCard.addEventListener('click', () => showMangaVolumes(manga));
       elements.mangaList.appendChild(mangaCard);
     });
   }
 
-  // Mostra os volumes de um mangá
   function showMangaVolumes(manga) {
     try {
       state.currentManga = manga;
@@ -123,24 +102,15 @@ document.addEventListener("DOMContentLoaded", function() {
         throw new Error("Este mangá não possui volumes disponíveis");
       }
       
-      // Atualiza a UI
       elements.mangaTitle.textContent = manga.title;
       elements.mangaCover.src = manga.cover;
-      elements.mangaCover.onerror = () => {
-        elements.mangaCover.src = 'images/default-cover.jpg';
-      };
+      elements.mangaCover.onerror = () => elements.mangaCover.src = 'images/default-cover.jpg';
       
       elements.volumeSelector.style.display = 'block';
       elements.mangaList.style.display = 'none';
       
-      // Preenche o dropdown de volumes
       elements.volumeDropdown.innerHTML = '<option value="">-- Selecionar Volume --</option>';
       manga.volumes.forEach((volume, index) => {
-        if (!volume.title || !volume.pages) {
-          console.warn('Volume com estrutura inválida:', volume);
-          return;
-        }
-        
         const option = document.createElement('option');
         option.value = index;
         option.textContent = volume.title;
@@ -156,45 +126,34 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   }
 
-  // Volta para a lista de mangás
   elements.backButton.addEventListener('click', () => {
     elements.volumeSelector.style.display = 'none';
     elements.mangaList.style.display = 'grid';
   });
 
-  // Habilita o botão de ler quando seleciona um volume
   elements.volumeDropdown.addEventListener('change', function() {
     elements.readButton.disabled = this.value === '';
   });
 
-  // Carrega o volume selecionado
   elements.readButton.addEventListener('click', function() {
     const volumeIndex = elements.volumeDropdown.value;
     if (volumeIndex === '') return;
-    
     loadVolume(parseInt(volumeIndex));
   });
 
-  // Carrega um volume específico
-  async function loadVolume(volumeIndex) {
+  async function loadVolume(volumeIndex, pageIndex = 0) {
     try {
       showLoading(true);
       
       state.currentVolumeIndex = volumeIndex;
       state.currentVolume = state.currentManga.volumes[volumeIndex];
-      
-      if (!state.currentVolume.pages || state.currentVolume.pages.length === 0) {
-        throw new Error("Este volume não possui páginas disponíveis");
-      }
-      
       state.currentPages = state.currentVolume.pages;
-      state.currentPageIndex = 0;
+      state.currentPageIndex = pageIndex;
       state.isDoublePage = elements.doublePageMode.checked;
+      state.pageImages = [];
       
-      // Prepara o visualizador
       elements.volumeTitle.textContent = state.currentVolume.title;
       
-      // Preenche o dropdown de volumes no visualizador
       elements.viewerVolumeDropdown.innerHTML = '';
       state.currentManga.volumes.forEach((volume, index) => {
         const option = document.createElement('option');
@@ -204,12 +163,9 @@ document.addEventListener("DOMContentLoaded", function() {
         elements.viewerVolumeDropdown.appendChild(option);
       });
       
-      // Preenche o dropdown de páginas
       updatePageDropdown();
-      
       elements.viewer.style.display = 'flex';
-      
-      // Renderiza as páginas
+      await preloadImages();
       renderPages();
       
     } catch (error) {
@@ -220,87 +176,127 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   }
 
-  // Atualiza o dropdown de páginas
+  async function preloadImages() {
+    const promises = state.currentPages.map((src, index) => {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.src = src;
+        img.onload = () => {
+          state.pageImages[index] = img;
+          resolve();
+        };
+        img.onerror = () => {
+          const defaultImg = new Image();
+          defaultImg.src = 'images/default-page.jpg';
+          state.pageImages[index] = defaultImg;
+          resolve();
+        };
+      });
+    });
+    await Promise.all(promises);
+  }
+
   function updatePageDropdown() {
     elements.pageDropdown.innerHTML = '';
-    
     for (let i = 0; i < state.currentPages.length; i++) {
-      const pageNum = i + 1;
       const option = document.createElement('option');
       option.value = i;
-      option.textContent = pageNum;
+      option.textContent = i + 1;
       option.selected = i === state.currentPageIndex;
       elements.pageDropdown.appendChild(option);
     }
-    
     elements.totalPages.textContent = `/ ${state.currentPages.length}`;
   }
 
-  // Renderiza as páginas no visualizador
+  function shouldShowSinglePage(index) {
+    if (!state.pageImages[index]) return true;
+    const img = state.pageImages[index];
+    return img.width > img.height;
+  }
+
   function renderPages() {
     elements.pagesContainer.innerHTML = '';
     
     if (state.isDoublePage) {
-      // Modo página dupla (right-to-left)
-      const spread = document.createElement('div');
-      spread.className = 'page-spread';
+      const currentShouldBeSingle = shouldShowSinglePage(state.currentPageIndex);
+      const nextShouldBeSingle = state.currentPageIndex + 1 < state.currentPages.length ? 
+        shouldShowSinglePage(state.currentPageIndex + 1) : true;
       
-      // Página da direita (primeira)
-      const rightPageIndex = state.currentPageIndex;
-      if (rightPageIndex < state.currentPages.length) {
-        const rightPage = createPageElement(state.currentPages[rightPageIndex]);
-        spread.appendChild(rightPage);
+      if (currentShouldBeSingle || nextShouldBeSingle) {
+        const page = createPageElement(state.currentPages[state.currentPageIndex]);
+        page.classList.add('single-page');
+        elements.pagesContainer.appendChild(page);
+      } else {
+        const spread = document.createElement('div');
+        spread.className = 'page-spread';
+        
+        const rightPageIndex = state.currentPageIndex;
+        if (rightPageIndex < state.currentPages.length) {
+          const rightPage = createPageElement(state.currentPages[rightPageIndex]);
+          spread.appendChild(rightPage);
+        }
+        
+        const leftPageIndex = state.currentPageIndex + 1;
+        if (leftPageIndex < state.currentPages.length) {
+          const leftPage = createPageElement(state.currentPages[leftPageIndex]);
+          spread.appendChild(leftPage);
+        }
+        
+        elements.pagesContainer.appendChild(spread);
       }
-      
-      // Página da esquerda (segunda)
-      const leftPageIndex = state.currentPageIndex + 1;
-      if (leftPageIndex < state.currentPages.length) {
-        const leftPage = createPageElement(state.currentPages[leftPageIndex]);
-        spread.appendChild(leftPage);
-      }
-      
-      elements.pagesContainer.appendChild(spread);
-      
     } else {
-      // Modo página única
       const page = createPageElement(state.currentPages[state.currentPageIndex]);
       page.classList.add('single-page');
       elements.pagesContainer.appendChild(page);
     }
     
-    // Atualiza o dropdown de páginas
     updatePageDropdown();
   }
 
-  // Cria um elemento de página com tratamento de erro
   function createPageElement(src) {
     const img = document.createElement('img');
     img.src = src;
     img.className = 'page';
     img.loading = 'eager';
-    img.onerror = function() {
-      this.src = 'images/default-page.jpg';
-      console.error(`Erro ao carregar página: ${src}`);
-    };
+    img.onerror = function() { this.src = 'images/default-page.jpg' };
+    
+    img.addEventListener('click', (e) => {
+      const rect = img.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const isLeftClick = clickX < rect.width / 2;
+      navigatePages(isLeftClick ? 1 : -1);
+    });
+    
     return img;
   }
 
-  // Navegação entre páginas
-  elements.prevBtn.addEventListener('click', () => {
-    navigatePages(-1);
-  });
-
-  elements.nextBtn.addEventListener('click', () => {
-    navigatePages(1);
-  });
-
-  // Função para navegar entre páginas
   function navigatePages(direction) {
+    // Tentativa de mudar de volume se necessário
+    if (direction === 1 && isLastPage() && !isLastVolume()) {
+      loadNextVolume();
+      return;
+    } else if (direction === -1 && isFirstPage() && !isFirstVolume()) {
+      loadPreviousVolume();
+      return;
+    }
+
+    // Navegação normal entre páginas
     if (state.isDoublePage) {
-      state.currentPageIndex = Math.max(0, Math.min(
-        state.currentPageIndex + (direction * 2),
-        state.currentPages.length - 1
-      ));
+      const currentShouldBeSingle = shouldShowSinglePage(state.currentPageIndex);
+      const nextShouldBeSingle = state.currentPageIndex + 1 < state.currentPages.length ? 
+        shouldShowSinglePage(state.currentPageIndex + 1) : true;
+      
+      if (currentShouldBeSingle || nextShouldBeSingle) {
+        state.currentPageIndex = Math.max(0, Math.min(
+          state.currentPageIndex + direction,
+          state.currentPages.length - 1
+        ));
+      } else {
+        state.currentPageIndex = Math.max(0, Math.min(
+          state.currentPageIndex + (direction * 2),
+          state.currentPages.length - 1
+        ));
+      }
     } else {
       state.currentPageIndex = Math.max(0, Math.min(
         state.currentPageIndex + direction,
@@ -310,13 +306,64 @@ document.addEventListener("DOMContentLoaded", function() {
     renderPages();
   }
 
-  // Seleção de página pelo dropdown
+  function isFirstPage() {
+    return state.currentPageIndex === 0;
+  }
+
+  function isLastPage() {
+    if (state.isDoublePage) {
+      const currentShouldBeSingle = shouldShowSinglePage(state.currentPageIndex);
+      const nextShouldBeSingle = state.currentPageIndex + 1 < state.currentPages.length ? 
+        shouldShowSinglePage(state.currentPageIndex + 1) : true;
+      
+      if (currentShouldBeSingle || nextShouldBeSingle) {
+        return state.currentPageIndex >= state.currentPages.length - 1;
+      } else {
+        return state.currentPageIndex >= state.currentPages.length - 2;
+      }
+    } else {
+      return state.currentPageIndex >= state.currentPages.length - 1;
+    }
+  }
+
+  function isFirstVolume() {
+    return state.currentVolumeIndex === 0;
+  }
+
+  function isLastVolume() {
+    return state.currentVolumeIndex >= state.currentManga.volumes.length - 1;
+  }
+
+  function loadNextVolume() {
+    if (!isLastVolume()) {
+      loadVolume(state.currentVolumeIndex + 1, 0);
+    }
+  }
+
+  function loadPreviousVolume() {
+    if (!isFirstVolume()) {
+      const prevVolumeIndex = state.currentVolumeIndex - 1;
+      const prevVolume = state.currentManga.volumes[prevVolumeIndex];
+      const lastPageIndex = prevVolume.pages.length - 1;
+      
+      // Se for double page, ajusta para começar no par correto
+      let startPageIndex = lastPageIndex;
+      if (state.isDoublePage && lastPageIndex > 0) {
+        startPageIndex = lastPageIndex % 2 === 0 ? lastPageIndex - 1 : lastPageIndex;
+      }
+      
+      loadVolume(prevVolumeIndex, startPageIndex);
+    }
+  }
+
+  elements.prevBtn.addEventListener('click', () => navigatePages(-1));
+  elements.nextBtn.addEventListener('click', () => navigatePages(1));
+
   elements.pageDropdown.addEventListener('change', function() {
     state.currentPageIndex = parseInt(this.value);
     renderPages();
   });
 
-  // Seleção de volume no visualizador
   elements.viewerVolumeDropdown.addEventListener('change', function() {
     const newVolumeIndex = parseInt(this.value);
     if (newVolumeIndex !== state.currentVolumeIndex) {
@@ -324,30 +371,22 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   });
 
-  // Alternar entre modos de página
   elements.doublePageMode.addEventListener('change', function() {
     state.isDoublePage = this.checked;
     renderPages();
   });
 
-  // Fechar visualizador
   elements.closeViewer.addEventListener('click', function() {
     elements.viewer.style.display = 'none';
   });
 
-  // Navegação por teclado (right-to-left)
   document.addEventListener('keydown', function(e) {
     if (elements.viewer.style.display === 'flex' && !state.isLoading) {
-      if (e.key === 'ArrowLeft') {
-        elements.nextBtn.click(); // Seta esquerda AVANÇA (right-to-left)
-      } else if (e.key === 'ArrowRight') {
-        elements.prevBtn.click(); // Seta direita VOLTA (right-to-left)
-      } else if (e.key === 'Escape') {
-        elements.closeViewer.click();
-      }
+      if (e.key === 'ArrowLeft') elements.nextBtn.click();
+      else if (e.key === 'ArrowRight') elements.prevBtn.click();
+      else if (e.key === 'Escape') elements.closeViewer.click();
     }
   });
 
-  // Inicia o aplicativo
   init();
 });

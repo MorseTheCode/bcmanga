@@ -309,7 +309,7 @@ body.dark-theme .volume-dropdown {
   transform: none;
 }
 
-/* Visualizador */
+/* Visualizador - Alterações principais aqui */
 .viewer {
   position: fixed;
   top: 0;
@@ -320,6 +320,7 @@ body.dark-theme .volume-dropdown {
   z-index: 1001;
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* Impede rolagem geral */
 }
 
 .viewer-header {
@@ -329,6 +330,7 @@ body.dark-theme .volume-dropdown {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  flex-shrink: 0; /* Evita que o header diminua */
 }
 
 .close-button {
@@ -509,6 +511,7 @@ body.dark-theme .volume-dropdown {
   opacity: 1;
 }
 
+/* Container de páginas - Alterações principais aqui */
 .pages-container {
   flex: 1;
   display: flex;
@@ -516,27 +519,44 @@ body.dark-theme .volume-dropdown {
   align-items: center;
   overflow: auto;
   padding: 20px;
+  max-height: calc(100vh - 150px); /* Altura máxima considerando o header */
 }
 
 .page-spread {
   display: flex;
   justify-content: center;
-  gap: 15px;
   max-width: 100%;
-  flex-direction: row-reverse; /* Direita para esquerda */
+  flex-direction: row-reverse;
+  gap: 0; /* Removido o espaçamento entre páginas */
 }
 
 .page {
-  max-width: 50%;
-  max-height: 90vh;
+  max-width: 48.7%; /* Reduzido de 50% para 47.5% (5% menor) */
+  max-height: 85vh; /* Reduzido de 90vh para 85.5vh (5% menor) */
   object-fit: contain;
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
-  border-radius: 3px;
+  box-shadow: none;
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.page-spread .page:first-child {
+  border-top-right-radius: 3px;
+  border-bottom-right-radius: 3px;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.0);
+}
+
+.page-spread .page:last-child {
+  border-top-left-radius: 3px;
+  border-bottom-left-radius: 3px;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.0);
 }
 
 .single-page {
-  max-width: 80%;
-  max-height: 90vh;
+  max-width: 77.9%; /* Reduzido de 80% para 76% (5% menor) */
+  max-height: 85vh; /* Reduzido de 90vh para 85.5vh (5% menor) */
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.0);
+  border-radius: 3px;
+  cursor: pointer;
 }
 
 /* Footer */
