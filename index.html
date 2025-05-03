@@ -23,6 +23,12 @@
   </header>
 
   <main>
+    <!-- Tela de Carregamento -->
+    <div id="loadingScreen" class="loading-screen">
+      <div class="loader"></div>
+      <p>Carregando catálogo...</p>
+    </div>
+
     <!-- Lista de Mangás -->
     <div class="manga-list" id="mangaList">
       <!-- Mangás serão carregados aqui -->
@@ -55,11 +61,24 @@
     <div class="viewer" id="viewer" style="display: none;">
       <div class="viewer-header">
         <button id="closeViewer" class="close-button">×</button>
-        <h3 id="volumeTitle" class="volume-title"></h3>
+        <div class="viewer-title-controls">
+          <h3 id="volumeTitle" class="volume-title"></h3>
+          <div class="viewer-volume-selector">
+            <select id="viewerVolumeDropdown" class="volume-dropdown">
+              <option value="">-- Trocar Volume --</option>
+            </select>
+          </div>
+        </div>
         <div class="viewer-controls">
-          <button id="prevBtn" class="nav-button">← Anterior</button>
-          <span id="pageCounter" class="page-counter">1/1</span>
-          <button id="nextBtn" class="nav-button">Próximo →</button>
+          <button id="prevBtn" class="nav-button">← Voltar Página</button>
+          <div class="page-selector">
+            <span>Página: </span>
+            <select id="pageDropdown" class="page-dropdown">
+              <option value="0">1</option>
+            </select>
+            <span id="totalPages">/ 1</span>
+          </div>
+          <button id="nextBtn" class="nav-button">Avançar Página →</button>
           <label class="toggle-switch">
             <input type="checkbox" id="doublePageMode" checked>
             <span class="slider"></span>
@@ -79,19 +98,5 @@
   </footer>
 
   <script src="script.js"></script>
-  <script>
-    // Toggle de tema claro/escuro
-    const themeToggle = document.getElementById('themeToggle');
-    themeToggle.addEventListener('change', () => {
-      document.body.classList.toggle('dark-theme');
-      localStorage.setItem('darkTheme', themeToggle.checked);
-    });
-
-    // Carrega preferência de tema
-    if (localStorage.getItem('darkTheme') === 'true') {
-      document.body.classList.add('dark-theme');
-      themeToggle.checked = true;
-    }
-  </script>
 </body>
 </html>

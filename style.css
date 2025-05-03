@@ -327,9 +327,7 @@ body.dark-theme .volume-dropdown {
   color: white;
   padding: 12px 20px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 10px;
 }
 
@@ -340,14 +338,48 @@ body.dark-theme .volume-dropdown {
   font-size: 1.5rem;
   cursor: pointer;
   padding: 5px;
-  margin-right: 10px;
+  position: absolute;
+  right: 15px;
+  top: 10px;
+}
+
+.viewer-title-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-top: 10px;
 }
 
 .volume-title {
   margin: 0;
   font-size: 1.2rem;
   font-weight: 500;
-  flex-grow: 1;
+}
+
+.viewer-volume-selector {
+  position: relative;
+  min-width: 200px;
+}
+
+.viewer-volume-selector::after {
+  content: "▼";
+  font-size: 0.8rem;
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: white;
+}
+
+.viewer-volume-selector select {
+  padding: 8px 15px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-size: 0.9rem;
 }
 
 .viewer-controls {
@@ -355,6 +387,8 @@ body.dark-theme .volume-dropdown {
   align-items: center;
   gap: 15px;
   flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 5px;
 }
 
 .nav-button {
@@ -376,10 +410,23 @@ body.dark-theme .volume-dropdown {
   cursor: not-allowed;
 }
 
-.page-counter {
+.page-selector {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.page-dropdown {
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
   font-size: 0.9rem;
-  min-width: 80px;
-  text-align: center;
+}
+
+.total-pages {
+  font-size: 0.9rem;
 }
 
 .toggle-switch {
@@ -476,6 +523,7 @@ body.dark-theme .volume-dropdown {
   justify-content: center;
   gap: 15px;
   max-width: 100%;
+  flex-direction: row-reverse; /* Direita para esquerda */
 }
 
 .page {
@@ -542,6 +590,15 @@ body.dark-theme .error-message {
   .single-page {
     max-width: 95%;
   }
+  
+  .viewer-title-controls {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .viewer-volume-selector {
+    width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
@@ -556,9 +613,6 @@ body.dark-theme .error-message {
   }
   
   .viewer-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
     padding: 10px;
   }
   
@@ -580,39 +634,9 @@ body.dark-theme .error-message {
     max-width: 100%;
     max-height: 45vh;
   }
-
-/* Adicione estas regras ao seu CSS existente */
-
-/* Visualizador sem separação entre páginas */
-.page-spread.seamless {
-  gap: 0 !important;
-}
-
-.page-spread.seamless .page {
-  border-radius: 0;
-  box-shadow: none;
-}
-
-/* Página única para imagens paisagem */
-.page.full-width {
-  max-width: 100% !important;
-  max-height: 95vh;
-  object-fit: contain;
-}
-
-/* Remove bordas entre páginas duplas */
-.page-spread.seamless .page:first-child {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-}
-
-.page-spread.seamless .page:last-child {
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
-}
-
-/* Ajuste fino para páginas adjacentes */
-.page-spread.seamless .page:not(:last-child) {
-  margin-right: -1px; /* Remove linha de separação */
-}
+  
+  .page-selector {
+    flex: 1;
+    justify-content: center;
+  }
 }
