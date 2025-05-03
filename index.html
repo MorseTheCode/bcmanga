@@ -38,15 +38,18 @@
   <div class="viewer" id="viewer" style="display: none;">
     <div class="viewer-header">
       <button id="closeViewer">× Fechar</button>
-      <h3 id="viewerTitle">Volume 1</h3>
-      <div class="page-controls">
-        <button id="prevPage">← Anterior</button>
-        <span id="pageIndicator">1/10</span>
-        <button id="nextPage">Próxima →</button>
+      <div class="viewer-controls">
+        <button id="prevSpread">← Página Anterior</button>
+        <span id="pageIndicator">1-2/30</span>
+        <button id="nextSpread">Próxima Página →</button>
+        <label>
+          <input type="checkbox" id="singlePageMode"> Modo página única
+        </label>
       </div>
     </div>
-    <div class="viewer-content">
-      <img id="currentPage" src="" alt="Página atual">
+  
+    <div class="spread-container" id="spreadContainer">
+    <!-- Páginas serão inseridas aqui -->
     </div>
   </div>
 

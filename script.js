@@ -1,155 +1,204 @@
-document.addEventListener("DOMContentLoaded", async function() {
-    // Elementos da interface
-    const elements = {
-        mangaList: document.getElementById("mangaList"),
-        volumeSelector: document.getElementById("volumeSelector"),
-        mangaCover: document.getElementById("mangaCover"),
-        volumeDropdown: document.getElementById("volumeDropdown"),
-        readButton: document.getElementById("readButton"),
-        loadingMessage: document.getElementById("loadingMessage"),
-        viewer: document.getElementById("viewer"),
-        closeViewer: document.getElementById("closeViewer"),
-        viewerTitle: document.getElementById("viewerTitle"),
-        currentPageImg: document.getElementById("currentPage"),
-        prevPageBtn: document.getElementById("prevPage"),
-        nextPageBtn: document.getElementById("nextPage"),
-        pageIndicator: document.getElementById("pageIndicator")
-    };
+document.addEventListener("DOMContentLoaded", function() {
+  // Elementos da interface
+  const elements = {
+    mangaList: document.getElementById("mangaList"),
+    volumeSelector: document.getElementById("volumeSelector"),
+    mangaCover: document.getElementById("mangaCover"),
+    volumeDropdown: document.getElementById("volumeDropdown"),
+    readButton: document.getElementById("readButton"),
+    loadingMessage: document.getElementById("loadingMessage"),
+    viewer: document.getElementById("viewer"),
+    closeViewer: document.getElementById("closeViewer"),
+    viewerTitle: document.getElementById("viewerTitle"),
+    spreadContainer: document.getElementById("spreadContainer"),
+    prevSpread: document.getElementById("prevSpread"),
+    nextSpread: document.getElementById("nextSpread"),
+    pageIndicator: document.getElementById("pageIndicator"),
+    singlePageMode: document.getElementById("singlePageMode")
+  };
 
-    // Estado do aplicativo
-    const state = {
-        currentManga: null,
-        currentVolume: null,
-        currentPages: [],
-        currentPageIndex: 0,
-        manifest: null
-    };
+  // Estado do aplicativo
+  const state = {
+    currentManga: null,
+    currentVolume: null,
+    currentPages: [],
+    currentSpreadIndex: 0,
+    viewMode: 'double', // 'double' ou 'single'
+    manifest: null
+  };
 
-    // Inicialização
-    async function init() {
-        try {
-            const response = await fetch('manifest.json');
-            if (!response.ok) throw new Error('Erro ao carregar manifest.json');
-            state.manifest = await response.json();
-            loadMangas();
-        } catch (error) {
-            console.error('Erro:', error);
-            alert('Falha ao carregar dados. Verifique o console.');
-        }
+  // Inicialização
+  async function init() {
+    try {
+      const response = await fetch('manifest.json');
+      if (!response.ok) throw new Error('Erro ao carregar manifest.json');
+      state.manifest = await response.json();
+      loadMangas();
+    } catch (error) {
+      console.error('Erro:', error);
+      alert('Falha ao carregar dados. Verifique o console.');
     }
+  }
 
-    // Carrega a lista de mangás
-    function loadMangas() {
-        elements.mangaList.innerHTML = '';
-        state.manifest.mangas.forEach(manga => {
-            const mangaCard = document.createElement("div");
-            mangaCard.className = "manga-card";
-            mangaCard.innerHTML = `
+  // Carrega a lista de mangás
+  function loadMangas() {
+    elements.mangaList.innerHTML = '';
+    state.manifest.mangas.forEach(manga => {
+      const mangaCard = document.createElement("div");
+      mangaCard.className = "manga-card";
+      mangaCard.innerHTML = `
         <img src="${manga.cover}" alt="${manga.title}" class="manga-cover-small">
         <div class="manga-info">
           <h3>${manga.title}</h3>
         </div>
       `;
-            mangaCard.addEventListener("click", () => showVolumeSelector(manga));
-            elements.mangaList.appendChild(mangaCard);
-        });
+      mangaCard.addEventListener("click", () => showVolumeSelector(manga));
+      elements.mangaList.appendChild(mangaCard);
+    });
+  }
+
+  // Mostra seletor de volumes
+  function showVolumeSelector(manga) {
+    state.currentManga = manga;
+    elements.mangaList.style.display = "none";
+    elements.volumeSelector.style.display = "block";
+    elements.mangaCover.src = manga.cover;
+    
+    elements.volumeDropdown.innerHTML = '<option value="">-- Selecionar Volume --</option>';
+    manga.volumes.forEach((volume, index) => {
+      const option = document.createElement("option");
+      option.value = index;
+      option.textContent = volume.title;
+      elements.volumeDropdown.appendChild(option);
+    });
+    
+    elements.readButton.disabled = true;
+  }
+
+  // Carrega um volume específico
+  async function loadVolume(volumeIndex) {
+    try {
+      elements.loadingMessage.style.display = "block";
+      elements.readButton.disabled = true;
+      
+      state.currentVolume = state.currentManga.volumes[volumeIndex];
+      state.currentPages = state.currentVolume.pages;
+      state.currentSpreadIndex = 0;
+      state.viewMode = 'double';
+      elements.singlePageMode.checked = false;
+      
+      elements.viewerTitle.textContent = state.currentVolume.title;
+      elements.viewer.style.display = "flex";
+      
+      showSpread();
+      
+    } catch (error) {
+      console.error("Erro:", error);
+      alert(`Erro: ${error.message}\nVerifique o console (F12)`);
+    } finally {
+      elements.loadingMessage.style.display = "none";
+    }
+  }
+
+  // Mostra as páginas no visualizador
+  function showSpread() {
+    elements.spreadContainer.innerHTML = '';
+    const spread = document.createElement('div');
+    spread.className = `spread spread-${state.viewMode}`;
+
+    if (state.viewMode === 'double') {
+      // Modo página dupla (right-to-left)
+      const rightPageIndex = state.currentSpreadIndex;
+      const leftPageIndex = state.currentSpreadIndex + 1;
+
+      // Página da direita (primeira a aparecer)
+      if (rightPageIndex < state.currentPages.length) {
+        const rightPage = createPageElement(rightPageIndex, 'page-right');
+        spread.appendChild(rightPage);
+      }
+
+      // Página da esquerda (segunda a aparecer)
+      if (leftPageIndex < state.currentPages.length) {
+        const leftPage = createPageElement(leftPageIndex, 'page-left');
+        spread.appendChild(leftPage);
+      }
+
+      // Atualiza indicador (ex: "1-2/30")
+      const startPage = Math.min(state.currentSpreadIndex + 1, state.currentPages.length);
+      const endPage = Math.min(state.currentSpreadIndex + 2, state.currentPages.length);
+      elements.pageIndicator.textContent = `${startPage}-${endPage}/${state.currentPages.length}`;
+    } else {
+      // Modo página única
+      const page = createPageElement(state.currentSpreadIndex, 'page-center');
+      spread.appendChild(page);
+      elements.pageIndicator.textContent = `${state.currentSpreadIndex + 1}/${state.currentPages.length}`;
     }
 
-    // Mostra seletor de volumes
-    function showVolumeSelector(manga) {
-        state.currentManga = manga;
-        elements.mangaList.style.display = "none";
-        elements.volumeSelector.style.display = "block";
-        elements.mangaCover.src = manga.cover;
+    elements.spreadContainer.appendChild(spread);
+  }
 
-        elements.volumeDropdown.innerHTML = '<option value="">-- Selecionar Volume --</option>';
-        manga.volumes.forEach((volume, index) => {
-            const option = document.createElement("option");
-            option.value = index;
-            option.textContent = volume.title;
-            elements.volumeDropdown.appendChild(option);
-        });
+  // Cria elemento de página
+  function createPageElement(pageIndex, className) {
+    const page = document.createElement('div');
+    page.className = `page ${className}`;
+    
+    const img = document.createElement('img');
+    img.src = state.currentPages[pageIndex];
+    img.alt = `Página ${pageIndex + 1}`;
+    img.loading = 'lazy';
+    
+    page.appendChild(img);
+    return page;
+  }
 
-        elements.readButton.disabled = true;
+  // Event Listeners
+  elements.volumeDropdown.addEventListener("change", function() {
+    elements.readButton.disabled = this.value === "";
+  });
+
+  elements.readButton.addEventListener("click", function() {
+    const volumeIndex = elements.volumeDropdown.value;
+    if (volumeIndex === "") return;
+    loadVolume(parseInt(volumeIndex));
+  });
+
+  elements.closeViewer.addEventListener("click", function() {
+    elements.viewer.style.display = "none";
+  });
+
+  elements.prevSpread.addEventListener("click", function() {
+    if (state.viewMode === 'double') {
+      state.currentSpreadIndex = Math.max(state.currentSpreadIndex - 2, 0);
+    } else {
+      state.currentSpreadIndex = Math.max(state.currentSpreadIndex - 1, 0);
     }
+    showSpread();
+  });
 
-    // Event Listeners
-    elements.volumeDropdown.addEventListener("change", function() {
-        elements.readButton.disabled = this.value === "";
-    });
-
-    elements.readButton.addEventListener("click", function() {
-        const volumeIndex = elements.volumeDropdown.value;
-        if (volumeIndex === "") return;
-
-        loadVolume(parseInt(volumeIndex));
-    });
-
-    // Carrega um volume específico
-    // Modifique a função loadVolume para:
-    async function loadVolume(volumeIndex) {
-        try {
-            elements.loadingMessage.style.display = "block";
-            elements.readButton.disabled = true;
-
-            state.currentVolume = state.currentManga.volumes[volumeIndex];
-            elements.viewerTitle.textContent = state.currentVolume.title;
-
-            // Use os caminhos completos já gerados no manifest
-            state.currentPages = state.currentVolume.pages;
-
-            console.log("Caminhos das páginas:", state.currentPages); // Verifique no console
-
-            if (state.currentPages.length === 0) throw new Error("Nenhuma página encontrada");
-
-            state.currentPageIndex = 0;
-            showCurrentPage();
-            elements.viewer.style.display = "flex";
-
-        } catch (error) {
-            console.error("Erro:", error);
-            alert(`Erro: ${error.message}\nVerifique o console (F12)`);
-        } finally {
-            elements.loadingMessage.style.display = "none";
-        }
+  elements.nextSpread.addEventListener("click", function() {
+    if (state.viewMode === 'double') {
+      state.currentSpreadIndex = Math.min(state.currentSpreadIndex + 2, state.currentPages.length - 1);
+    } else {
+      state.currentSpreadIndex = Math.min(state.currentSpreadIndex + 1, state.currentPages.length - 1);
     }
+    showSpread();
+  });
 
-    // Mostra a página atual
-    function showCurrentPage() {
-        elements.currentPageImg.src = state.currentPages[state.currentPageIndex];
-        elements.pageIndicator.textContent = `${state.currentPageIndex + 1}/${state.currentPages.length}`;
-        elements.prevPageBtn.disabled = state.currentPageIndex === 0;
-        elements.nextPageBtn.disabled = state.currentPageIndex === state.currentPages.length - 1;
+  elements.singlePageMode.addEventListener("change", function(e) {
+    state.viewMode = e.target.checked ? 'single' : 'double';
+    showSpread();
+  });
+
+  // Navegação por teclado (right-to-left)
+  document.addEventListener("keydown", function(e) {
+    if (elements.viewer.style.display === "flex") {
+      // Setas invertidas para leitura oriental
+      if (e.key === "ArrowRight") elements.prevSpread.click(); // ← Avança
+      if (e.key === "ArrowLeft") elements.nextSpread.click(); // → Volta
+      if (e.key === "Escape") elements.closeViewer.click();
     }
+  });
 
-    // Navegação
-    elements.prevPageBtn.addEventListener("click", () => {
-        if (state.currentPageIndex > 0) {
-            state.currentPageIndex--;
-            showCurrentPage();
-        }
-    });
-
-    elements.nextPageBtn.addEventListener("click", () => {
-        if (state.currentPageIndex < state.currentPages.length - 1) {
-            state.currentPageIndex++;
-            showCurrentPage();
-        }
-    });
-
-    elements.closeViewer.addEventListener("click", () => {
-        elements.viewer.style.display = "none";
-    });
-
-    // Navegação por teclado
-    document.addEventListener("keydown", (e) => {
-        if (elements.viewer.style.display === "flex") {
-            if (e.key === "ArrowLeft") elements.prevPageBtn.click();
-            if (e.key === "ArrowRight") elements.nextPageBtn.click();
-            if (e.key === "Escape") elements.closeViewer.click();
-        }
-    });
-
-    // Inicializa o app
-    init();
+  // Inicializa o app
+  init();
 });
