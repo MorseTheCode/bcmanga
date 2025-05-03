@@ -13,6 +13,7 @@ fs.readdirSync(mangaDir).forEach(mangaFolder => {
   const manga = {
     title: mangaFolder,
     cover: `mangas/${mangaFolder}/cover.jpg`,
+    path: `mangas/${mangaFolder}/`,  // Adicionado caminho base do mangá
     volumes: []
   };
 
@@ -25,8 +26,8 @@ fs.readdirSync(mangaDir).forEach(mangaFolder => {
 
       manga.volumes.push({
         title: item.replace(/-/g, ' '),
-        path: `mangas/${mangaFolder}/${item}/`,
-        pages: pages.map(p => `${item}/${p}`)
+        folder: item,  // Nome da pasta do volume
+        pages: pages   // Apenas nomes dos arquivos
       });
     }
   });
