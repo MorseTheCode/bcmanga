@@ -3,22 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manga Reader</title>
+  <title>Leitor de Mangá</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
-    <h1>Manga Reader</h1>
+    <h1>Leitor de Mangá</h1>
   </header>
 
-  <div class="manga-container">
+  <main>
     <div class="manga-list" id="mangaList">
       <!-- Mangás serão carregados aqui -->
+      <div class="loading">Carregando mangás...</div>
     </div>
-    
+
     <div class="volume-selector" id="volumeSelector" style="display: none;">
+      <div class="header">
+        <button id="backButton">← Voltar</button>
+        <h2 id="mangaTitle"></h2>
+      </div>
+      
       <div class="cover-container">
-        <img id="mangaCover" src="" alt="Capa do Mangá" class="manga-cover">
+        <img id="mangaCover" src="" alt="Capa do Mangá">
       </div>
       
       <div class="volume-controls">
@@ -27,31 +33,28 @@
         </select>
         <button id="readButton">Ler</button>
       </div>
-      
-      <div id="loadingMessage" style="display: none;">
-        <p>Carregando volume...</p>
-        <div class="loader"></div>
-      </div>
     </div>
-  </div>
 
-  <div class="viewer" id="viewer" style="display: none;">
-    <div class="viewer-header">
-      <button id="closeViewer">× Fechar</button>
-      <div class="viewer-controls">
-        <button id="prevSpread">← Página Anterior</button>
-        <span id="pageIndicator">1-2/30</span>
-        <button id="nextSpread">Próxima Página →</button>
-        <label>
-          <input type="checkbox" id="singlePageMode"> Modo página única
-        </label>
+    <div class="viewer" id="viewer" style="display: none;">
+      <div class="viewer-header">
+        <button id="closeViewer">× Fechar</button>
+        <h3 id="volumeTitle"></h3>
+        <div class="viewer-controls">
+          <button id="prevBtn">← Anterior</button>
+          <span id="pageCounter">1/1</span>
+          <button id="nextBtn">Próximo →</button>
+          <label>
+            <input type="checkbox" id="doublePageMode" checked>
+            Página Dupla
+          </label>
+        </div>
+      </div>
+      
+      <div class="pages-container" id="pagesContainer">
+        <!-- Páginas serão carregadas aqui -->
       </div>
     </div>
-  
-    <div class="spread-container" id="spreadContainer">
-    <!-- Páginas serão inseridas aqui -->
-    </div>
-  </div>
+  </main>
 
   <script src="script.js"></script>
 </body>

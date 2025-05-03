@@ -1,65 +1,150 @@
-/* Estilos do Visualizador */
-.spread-container {
+/* Estilos Gerais */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+header {
+  background-color: #222;
+  color: white;
+  padding: 1rem;
+  text-align: center;
+}
+
+/* Lista de Mangás */
+.manga-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.manga-card {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+  cursor: pointer;
+}
+
+.manga-card:hover {
+  transform: translateY(-5px);
+}
+
+.manga-cover {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+}
+
+.manga-info {
+  padding: 12px;
+}
+
+.manga-info h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.manga-info p {
+  margin: 4px 0 0;
+  color: #666;
+  font-size: 0.8rem;
+}
+
+/* Seletor de Volumes */
+.volume-selector {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.cover-container {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.cover-container img {
+  max-height: 400px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.volume-controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+#volumeDropdown {
+  padding: 8px 12px;
+  min-width: 250px;
+}
+
+#readButton {
+  padding: 8px 20px;
+  background-color: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Visualizador */
+.viewer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #111;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+.viewer-header {
+  background-color: #222;
+  color: white;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pages-container {
+  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: calc(100vh - 60px);
-  perspective: 1000px;
+  overflow: auto;
 }
 
-.spread {
+.page-spread {
   display: flex;
-  box-shadow: 0 0 20px rgba(0,0,0,0.5);
-  transform-style: preserve-3d;
-  transition: transform 0.5s;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px;
 }
 
 .page {
-  position: relative;
-  overflow: hidden;
-}
-
-.page img {
-  height: 90vh;
-  width: auto;
+  max-width: 50%;
+  max-height: 90vh;
   object-fit: contain;
-  display: block;
+  box-shadow: 0 0 20px rgba(0,0,0,0.7);
 }
 
-/* Modo Página Dupla */
-.spread-double {
-  display: flex;
+.single-page {
+  max-width: 80%;
 }
 
-.spread-double .page {
-  width: 50vw;
-}
-
-/* Modo Página Única */
-.spread-single {
-  display: flex;
-  justify-content: center;
-}
-
-.spread-single .page {
-  width: 80vw;
-}
-
-/* Efeito 3D para páginas */
-.page-left {
-  transform-origin: right center;
-}
-
-.page-right {
-  transform-origin: left center;
-}
-
-/* Animação de virada */
-.turning {
-  animation: pageTurn 1s forwards;
-}
-
-@keyframes pageTurn {
-  0% { transform: rotateY(0deg); }
-  100% { transform: rotateY(-180deg); }
+/* Loading */
+.loading {
+  text-align: center;
+  padding: 40px;
+  grid-column: 1 / -1;
 }
