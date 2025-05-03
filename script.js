@@ -86,6 +86,7 @@ document.addEventListener("DOMContentLoaded", async function() {
     });
 
     // Carrega um volume específico
+    // Modifique a função loadVolume para:
     async function loadVolume(volumeIndex) {
         try {
             elements.loadingMessage.style.display = "block";
@@ -94,12 +95,10 @@ document.addEventListener("DOMContentLoaded", async function() {
             state.currentVolume = state.currentManga.volumes[volumeIndex];
             elements.viewerTitle.textContent = state.currentVolume.title;
 
-            // Caminho corrigido:
-            state.currentPages = state.currentVolume.pages.map(p =>
-                `${state.currentManga.path}${state.currentVolume.folder}/${p}`
-            );
+            // Use os caminhos completos já gerados no manifest
+            state.currentPages = state.currentVolume.pages;
 
-            console.log("Caminhos das páginas:", state.currentPages); // Para debug
+            console.log("Caminhos das páginas:", state.currentPages); // Verifique no console
 
             if (state.currentPages.length === 0) throw new Error("Nenhuma página encontrada");
 
@@ -109,7 +108,7 @@ document.addEventListener("DOMContentLoaded", async function() {
 
         } catch (error) {
             console.error("Erro:", error);
-            alert(`Erro: ${error.message}`);
+            alert(`Erro: ${error.message}\nVerifique o console (F12)`);
         } finally {
             elements.loadingMessage.style.display = "none";
         }
